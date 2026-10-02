@@ -1,0 +1,91 @@
+---
+// Self-hosted fonts (same families as before, no request to Google at render time).
+import "@fontsource/instrument-serif/400.css";
+import "@fontsource/instrument-serif/400-italic.css";
+import "@fontsource-variable/inter";
+import "@fontsource/mukta/300.css";
+import "@fontsource/mukta/400.css";
+import "@fontsource/mukta/500.css";
+import "@fontsource/mukta/600.css";
+import "@fontsource/mukta/700.css";
+import "@fontsource/tiro-devanagari-hindi/400.css";
+import "../styles/global.css";
+// Preload the faces the first screen paints with, so the swap doesn't shift layout.
+import serifUrl from "@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff2?url";
+import serifItalicUrl from "@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2?url";
+import interUrl from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
+import muktaUrl from "@fontsource/mukta/files/mukta-devanagari-400-normal.woff2?url";
+import tiroUrl from "@fontsource/tiro-devanagari-hindi/files/tiro-devanagari-hindi-devanagari-400-normal.woff2?url";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { t } from "../data/content";
+import { LOCALES, switchHref, type Locale } from "../data/i18n";
+
+interface Props {
+  lang: Locale;
+  title?: string;
+  description?: string;
+  /** Which 3D scene this page runs. */
+  scene: "home" | "catalogue" | "product" | "about" | "contact" | "ambient";
+  sceneData?: unknown;
+  /** Header starts dark-on-light over the home hero. */
+  lightHeader?: boolean;
+}
+
+const { lang, title, description, scene, sceneData = {}, lightHeader = false } = Astro.props;
+const copy = t(lang);
+const pageTitle = title ? `${title} · ${copy.meta.siteName}` : `${copy.meta.siteName} · ${copy.hero.titleA} ${copy.hero.titleB}`;
+const desc = description ?? copy.meta.description;
+const path = Astro.url.pathname;
+// PLACEHOLDER domain: set `site` in astro.config.mjs to the real one before launch.
+const site = Astro.site ?? "https://highgrowthhoney.com";
+const stageConfig = JSON.stringify({ scene, lang, data: sceneData, banners: copy.banners });
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={desc} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:image" content="/images/honey-jar.webp" />
+    <meta name="theme-color" content="#100b07" />
+    {
+      (lang === "hi" ? [tiroUrl, muktaUrl, interUrl] : [serifUrl, serifItalicUrl, interUrl]).map((href) => (
+        <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
+      ))
+    }
+    <link rel="canonical" href={new URL(path, site).href} />
+    {LOCALES.map((l) => <link rel="alternate" hreflang={l} href={new URL(switchHref(path, l), site).href} />)}
+    <link rel="alternate" hreflang="x-default" href={new URL(switchHref(path, "en"), site).href} />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2l8.66 5v10L12 22l-8.66-5V7z' fill='%23f0b43c'/%3E%3C/svg%3E"
+    />
+    <script is:inline>document.documentElement.classList.add("js");</script>
+  </head>
+  <body data-scene={scene}>
+    <a class="skip" href="#main">{copy.nav.skip}</a>
+    <Header lang={lang} light={lightHeader} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+    <canvas class="stage-canvas" aria-hidden="true"></canvas>
+    <script type="application/json" id="stage-config" set:html={stageConfig} />
+    <script>
+      import "../scripts/site";
+      // The 3D layer (three.js, gsap, the bee) is its own chunk, started once
+      // the page has loaded and the browser is idle, so it never competes
+      // with first paint or the hero copy.
+      const bootStage = () => import("../scripts/stage/index");
+      const whenIdle = () =>
+        "requestIdleCallback" in window ? requestIdleCallback(bootStage, { timeout: 1200 }) : setTimeout(bootStage, 300);
+      if (document.readyState === "complete") whenIdle();
+      else addEventListener("load", whenIdle, { once: true });
+    </script>
+  </body>
+</html>

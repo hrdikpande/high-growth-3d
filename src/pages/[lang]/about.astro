@@ -1,0 +1,78 @@
+---
+import Base from "../../layouts/Base.astro";
+import MarketButtons from "../../components/MarketButtons.astro";
+import { t } from "../../data/content";
+import { staticLangPaths, type Locale } from "../../data/i18n";
+
+export function getStaticPaths() {
+  return staticLangPaths();
+}
+
+const lang = Astro.params.lang as Locale;
+const c = t(lang);
+const a = c.about;
+---
+
+<Base lang={lang} title={a.heading} scene="about">
+  <section class="wrap page-head">
+    <span class="glow" style="width: 40vw; height: 26vw; left: -10vw; top: 20%; background: #c9821c"></span>
+    <p class="eyebrow">{a.eyebrow}</p>
+    <h1 class="display h1">{a.heading}</h1>
+    <p class="lede">{a.body}</p>
+  </section>
+
+  <section class="wrap section" style="padding-top: 20px">
+    <div class="pillars">
+      {
+        a.sections.map((s, i) => (
+          <article class="pillar glass reveal" style={`transition-delay:${i * 0.1}s`}>
+            <h2 class="pillar__title">{s.heading}</h2>
+            <p>{s.body}</p>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="wrap section" data-timeline>
+    <h2 class="display h2 reveal" style="text-align: center">{a.timelineHeading}</h2>
+    <ol class="timeline">
+      {
+        a.timeline.map((e) => (
+          <li class="tl reveal">
+            <span class="tl__dot" data-tl-dot />
+            <p class="tl__year">{e.year}</p>
+            <h3>{e.title}</h3>
+            <p>{e.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section class="wrap section">
+    <h2 class="display h2 reveal" style="margin-bottom: 30px">{a.teamHeading}</h2>
+    <div class="team">
+      {
+        a.team.map((m) => (
+          <article class="member glass reveal">
+            <span class="member__avatar" aria-hidden="true">HG</span>
+            <div>
+              <h3>{a.nameToBeAdded}</h3>
+              <p class="role">{m.role}</p>
+              <p>{m.bio}</p>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="wrap section" style="padding-top: 0">
+    <div class="glass reveal" style="padding: 40px">
+      <h2 class="display h3">{c.finale.heading}</h2>
+      <p class="lede" style="margin-top: 12px">{c.finale.body}</p>
+      <MarketButtons lang={lang} />
+    </div>
+  </section>
+</Base>

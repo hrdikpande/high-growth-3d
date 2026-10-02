@@ -1,0 +1,25 @@
+---
+import { t } from "../data/content";
+import type { Locale } from "../data/i18n";
+import { marketplaceUrl, PRODUCTS, type Product } from "../data/products";
+
+interface Props {
+  lang: Locale;
+  product?: Product;
+  note?: boolean;
+}
+
+const { lang, product = PRODUCTS[0], note = false } = Astro.props;
+const m = t(lang).marketplace;
+const name = product.copy[lang].name;
+---
+
+<div class="market">
+  <a class="btn btn--honey" href={marketplaceUrl("amazon", product)} target="_blank" rel="noopener noreferrer sponsored" aria-label={`${m.amazon}, ${name}${m.amazonHint}`}>
+    {m.amazon} <span aria-hidden="true">↗</span>
+  </a>
+  <a class="btn btn--ghost" href={marketplaceUrl("flipkart", product)} target="_blank" rel="noopener noreferrer sponsored" aria-label={`${m.flipkart}, ${name}${m.flipkartHint}`}>
+    {m.flipkart} <span aria-hidden="true">↗</span>
+  </a>
+</div>
+{note && <p class="market__note">{m.noOrdersHere}</p>}

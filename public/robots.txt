@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# PLACEHOLDER domain: update together with `site` in astro.config.mjs.
+Sitemap: https://highgrowthhoney.com/sitemap.xml

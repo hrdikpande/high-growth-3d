@@ -1,0 +1,59 @@
+---
+import { t } from "../data/content";
+import { href, LOCALES, LOCALE_LABEL, LOCALE_SHORT, switchHref, type Locale } from "../data/i18n";
+import Logo from "./Logo.astro";
+
+interface Props {
+  lang: Locale;
+  light?: boolean;
+}
+
+const { lang, light = false } = Astro.props;
+const copy = t(lang);
+const path = Astro.url.pathname.replace(/\/?$/, "/");
+const links = [
+  { path: "/honeys", label: copy.nav.honeys },
+  { path: "/about", label: copy.nav.story },
+  { path: "/#sourcing", label: copy.nav.sourcing },
+  { path: "/contact", label: copy.nav.contact },
+];
+---
+
+<header class:list={["header", { "is-light": light, "is-solid": !light }]} data-light={light ? "true" : undefined}>
+  <div class="header__inner">
+    <a class="brand" href={href(lang)} aria-label={copy.nav.home}>
+      <Logo />
+      <span>{lang === "hi" ? "हाई ग्रोथ" : "HIGH GROWTH"}</span>
+    </a>
+    <nav class="nav" aria-label={copy.nav.primary}>
+      {
+        links.map((link) => {
+          const url = href(lang, link.path);
+          return (
+            <a href={url} aria-current={path === url ? "page" : undefined}>
+              {link.label}
+            </a>
+          );
+        })
+      }
+    </nav>
+    <div class="header__actions">
+      <div class="lang" aria-label={copy.nav.switchTo}>
+        {
+          LOCALES.map((l) => (
+            <a href={switchHref(path, l)} lang={l} hreflang={l} aria-current={l === lang ? "true" : undefined} title={LOCALE_LABEL[l]}>
+              <span>{LOCALE_SHORT[l]}</span>
+            </a>
+          ))
+        }
+      </div>
+      <a class="btn btn--dark" href={href(lang, "/honeys")}>{copy.nav.honeys}</a>
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mobile-nav" data-open={copy.nav.menu} data-close={copy.nav.close}>
+        {copy.nav.menu}
+      </button>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobile-nav" aria-label={copy.nav.primary}>
+    {links.map((link) => <a href={href(lang, link.path)}>{link.label}</a>)}
+  </nav>
+</header>

@@ -1,0 +1,20 @@
+---
+// The site lives under /en/ and /hi/. Send visitors to their language.
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>High Growth Honey</title>
+    <meta http-equiv="refresh" content="0; url=/en/" />
+    <link rel="canonical" href="/en/" />
+    <script is:inline>
+      var hi = (navigator.languages || [navigator.language]).some(function (l) { return /^hi\b/i.test(l); });
+      location.replace(hi ? "/hi/" : "/en/");
+    </script>
+  </head>
+  <body>
+    <a href="/en/">High Growth Honey</a> · <a href="/hi/">हाई ग्रोथ हनी</a>
+  </body>
+</html>

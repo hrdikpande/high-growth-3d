@@ -1,0 +1,89 @@
+---
+import Base from "../../layouts/Base.astro";
+import { t } from "../../data/content";
+import { staticLangPaths, type Locale } from "../../data/i18n";
+
+export function getStaticPaths() {
+  return staticLangPaths();
+}
+
+const lang = Astro.params.lang as Locale;
+const c = t(lang);
+const k = c.contact;
+const f = c.footer;
+---
+
+<Base lang={lang} title={k.heading} scene="contact">
+  <section class="wrap page-head">
+    <span class="glow" style="width: 40vw; height: 26vw; right: -10vw; top: 20%; background: #c9821c"></span>
+    <p class="eyebrow">{k.eyebrow}</p>
+    <h1 class="display h1">{k.heading}</h1>
+    <p class="lede">{k.body}</p>
+  </section>
+
+  <section class="wrap contact">
+    <!-- Works with Netlify Forms when deployed there; see README. -->
+    <form
+      class="form glass"
+      name="enquiry"
+      method="POST"
+      data-netlify="true"
+      netlify-honeypot="company_website"
+      novalidate
+      data-enquiry
+      data-errors={JSON.stringify(k.errors)}
+      data-thanks={k.thanks}
+    >
+      <input type="hidden" name="form-name" value="enquiry" />
+      <p class="sr-only"><label>Leave empty <input name="company_website" tabindex="-1" autocomplete="off" /></label></p>
+      <div class="field">
+        <label for="f-name">{k.name}</label>
+        <input id="f-name" name="name" autocomplete="name" required data-rule="name" />
+        <span class="error" aria-live="polite"></span>
+      </div>
+      <div class="field">
+        <label for="f-company">{k.company} <small>({c.common.optional})</small></label>
+        <input id="f-company" name="company" autocomplete="organization" />
+        <span class="error"></span>
+      </div>
+      <div class="field">
+        <label for="f-phone">{k.phone}</label>
+        <input id="f-phone" name="phone" type="tel" autocomplete="tel" required data-rule="phone" />
+        <span class="error" aria-live="polite"></span>
+      </div>
+      <div class="field">
+        <label for="f-email">{k.email}</label>
+        <input id="f-email" name="email" type="email" autocomplete="email" required data-rule="email" />
+        <span class="error" aria-live="polite"></span>
+      </div>
+      <div class="field">
+        <label for="f-city">{k.city}</label>
+        <input id="f-city" name="city" autocomplete="address-level2" required data-rule="city" />
+        <span class="error" aria-live="polite"></span>
+      </div>
+      <div class="field">
+        <label for="f-purpose">{k.purpose}</label>
+        <select id="f-purpose" name="purpose">
+          {k.purposes.map((p) => <option value={p.value}>{p.label}</option>)}
+        </select>
+        <span class="error"></span>
+      </div>
+      <div class="field field--full">
+        <label for="f-message">{k.message}</label>
+        <textarea id="f-message" name="message" placeholder={k.messagePlaceholder} required data-rule="message"></textarea>
+        <span class="error" aria-live="polite"></span>
+      </div>
+      <div class="field--full">
+        <button class="btn btn--honey" type="submit">{k.submit}</button>
+      </div>
+      <p class="form__status" role="status" aria-live="polite"></p>
+    </form>
+
+    <aside class="direct glass">
+      <h2>{k.reachDirectly}</h2>
+      <p><a href={`tel:${f.phone.replace(/\s/g, "")}`}>{f.phone}</a></p>
+      <p><a href={`mailto:${f.email}`}>{f.email}</a></p>
+      <p>{f.address.label}<br />{f.address.lines.map((l) => <>{l}<br /></>)}</p>
+    </aside>
+  </section>
+</Base>

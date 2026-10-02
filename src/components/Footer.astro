@@ -1,0 +1,82 @@
+---
+import { t } from "../data/content";
+import { href, type Locale } from "../data/i18n";
+import { PRODUCTS } from "../data/products";
+import Logo from "./Logo.astro";
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const copy = t(lang);
+const f = copy.footer;
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__grid">
+      <div>
+        <a class="brand" href={href(lang)} style="color: var(--text)">
+          <Logo />
+          <span>{lang === "hi" ? "हाई ग्रोथ" : "HIGH GROWTH"}</span>
+        </a>
+        <p style="margin-top: 16px; max-width: 28em">{f.blurb}</p>
+        <p style="margin-top: 16px">{f.licence}: {f.fssai}</p>
+      </div>
+      <div>
+        <h2>{copy.nav.honeys}</h2>
+        <ul>
+          {
+            PRODUCTS.map((p) => (
+              <li>
+                <a href={href(lang, `/honeys/${p.slug}`)}>{p.copy[lang].name}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <div>
+        <h2>{f.explore}</h2>
+        <ul>
+          <li><a href={href(lang, "/honeys")}>{copy.nav.honeys}</a></li>
+          <li><a href={href(lang, "/about")}>{copy.nav.story}</a></li>
+          <li><a href={href(lang, "/#sourcing")}>{copy.nav.sourcing}</a></li>
+          <li><a href={href(lang, "/contact")}>{copy.nav.contact}</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>{f.reachUs}</h2>
+        <ul>
+          <li><a href={`tel:${f.phone.replace(/\s/g, "")}`}>{f.phone}</a></li>
+          <li><a href={`mailto:${f.email}`}>{f.email}</a></li>
+          <li>
+            {f.address.label}<br />
+            {f.address.lines.map((l) => <>{l}<br /></>)}
+          </li>
+          <li>
+            {
+              f.social.map((s, i) => (
+                <>
+                  {i > 0 && " · "}
+                  <a href={s.href} target="_blank" rel="noopener noreferrer">
+                    {s.label}
+                  </a>
+                </>
+              ))
+            }
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__base">
+      <span>© {year} {f.rights}</span>
+      <span>
+        <a href="https://sketchfab.com/3d-models/honey-bee-aaf957992c1142bb8e3ad52c457ab014" target="_blank" rel="noopener">
+          {f.credit}
+        </a>
+      </span>
+    </div>
+  </div>
+</footer>

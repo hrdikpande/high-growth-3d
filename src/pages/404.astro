@@ -1,0 +1,20 @@
+---
+import Base from "../layouts/Base.astro";
+import { t } from "../data/content";
+import { href } from "../data/i18n";
+
+const lang = "en";
+const c = t(lang);
+---
+
+<Base lang={lang} title={c.notFound.title} scene="ambient">
+  <section class="wrap page-head" style="min-height: 80vh">
+    <p class="eyebrow">404</p>
+    <h1 class="display h1">{c.notFound.title}</h1>
+    <p class="lede">{c.notFound.body}</p>
+    <div class="cta">
+      <a class="btn btn--honey" href={href(lang, "/honeys")}>{c.notFound.seeHoneys}</a>
+      <a class="link-arrow" href={href(lang)}>{c.notFound.home} →</a>
+    </div>
+  </section>
+</Base>

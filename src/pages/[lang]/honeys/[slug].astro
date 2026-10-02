@@ -1,0 +1,132 @@
+---
+import Base from "../../../layouts/Base.astro";
+import { t } from "../../../data/content";
+import { href, LOCALES, type Locale } from "../../../data/i18n";
+import { formatPrice, formatWeight, richText, savingsPercent } from "../../../data/format";
+import { BADGES, HONEY_TYPES, lowestPrice, marketplaceUrl, NUTRITION, PRODUCTS } from "../../../data/products";
+
+export function getStaticPaths() {
+  return LOCALES.flatMap((lang) => PRODUCTS.map((p) => ({ params: { lang, slug: p.slug }, props: { product: p } })));
+}
+
+const { product } = Astro.props;
+const lang = Astro.params.lang as Locale;
+const c = t(lang);
+const pc = product.copy[lang];
+const typeName = HONEY_TYPES[product.type][lang];
+const first = product.variants.find((v) => v.inStock !== false) ?? product.variants[0];
+const faqs = [...pc.faqs, ...c.faq.items];
+const others = PRODUCTS.filter((p) => p.slug !== product.slug).slice(0, 3);
+const m = c.marketplace;
+const sceneData = { color: product.color, label: product.label, name: pc.name, type: typeName };
+---
+
+<Base lang={lang} title={pc.name} description={pc.shortDesc} scene="product" sceneData={sceneData}>
+  <div class="wrap product" style={`--flavor:${product.label}`}>
+    <div class="product__viewer">
+      <div class="product__stage" data-anchor="product-stage"></div>
+      <div class="product__drag" data-drag aria-hidden="true"></div>
+      <p class="product__hint">{c.product.drag}</p>
+    </div>
+
+    <div>
+      <p class="crumb"><a href={href(lang, "/honeys")}>{c.product.breadcrumb}</a> / {typeName}</p>
+      <p class="eyebrow">{typeName}</p>
+      <h1 class="display h2" style="margin-top: 14px">{pc.name}</h1>
+      <p class="lede" style="margin-top: 18px">{pc.shortDesc}</p>
+      <div class="badges">{product.badges.map((b) => <span class="badge">{BADGES[b][lang]}</span>)}</div>
+
+      <div class="sizes" data-sizes>
+        <p class="sizes__label">{c.product.chooseSize}</p>
+        <div class="sizes__chips" role="group" aria-label={c.product.chooseSize}>
+          {
+            product.variants.map((v) => (
+              <button
+                type="button"
+                class:list={["size", { "is-out": v.inStock === false }]}
+                aria-pressed={v === first ? "true" : "false"}
+                data-price={formatPrice(v.price)}
+                data-mrp={v.mrp > v.price ? formatPrice(v.mrp) : ""}
+                data-save={savingsPercent(v.mrp, v.price) ?? ""}
+                data-stock={v.inStock === false ? c.product.outOfStockNow : c.product.inStock}
+              >
+                {formatWeight(v.weight, v.unit, lang)}
+                <small>{formatPrice(v.price)}</small>
+              </button>
+            ))
+          }
+        </div>
+        <div class="buy-price">
+          <strong data-price-out>{formatPrice(first.price)}</strong>
+          <s data-mrp-out>{first.mrp > first.price ? formatPrice(first.mrp) : ""}</s>
+          <span data-save-out data-off={c.common.off}>{savingsPercent(first.mrp, first.price) ? `${savingsPercent(first.mrp, first.price)}% ${c.common.off}` : ""}</span>
+        </div>
+        <p class="stock" data-stock-out>{first.inStock === false ? c.product.outOfStockNow : c.product.inStock}</p>
+      </div>
+
+      <div class="market">
+        <a class="btn btn--honey" href={marketplaceUrl("amazon", product)} target="_blank" rel="noopener noreferrer sponsored" aria-label={`${m.amazon}${m.amazonHint}`}>{m.amazon} <span aria-hidden="true">↗</span></a>
+        <a class="btn btn--ghost" href={marketplaceUrl("flipkart", product)} target="_blank" rel="noopener noreferrer sponsored" aria-label={`${m.flipkart}${m.flipkartHint}`}>{m.flipkart} <span aria-hidden="true">↗</span></a>
+      </div>
+      <p class="market__note">{m.noOrdersHere}</p>
+
+      <section class="block">
+        <h2>{c.product.about}</h2>
+        <div class="prose" set:html={richText(pc.longDesc)} />
+      </section>
+
+      <section class="block">
+        <h2>{c.product.particulars}</h2>
+        <dl class="facts">
+          <dt>{c.product.honeyType}</dt><dd>{typeName}</dd>
+          <dt>{c.product.floralSource}</dt><dd>{pc.floralSource}</dd>
+          <dt>{c.product.harvestSeason}</dt><dd>{pc.harvestSeason}</dd>
+          <dt>{c.product.tastingNotes}</dt><dd>{pc.tastingNotes}</dd>
+          <dt>{c.product.texture}</dt><dd>{pc.crystallisation}</dd>
+          <dt>{c.product.storage}</dt><dd>{pc.storage}</dd>
+        </dl>
+      </section>
+
+      <section class="block">
+        <h2>{c.product.nutrition}</h2>
+        <table class="table">
+          <tbody>
+            {NUTRITION.map((n) => <tr><td>{n.label[lang]}</td><td>{n.value}</td></tr>)}
+          </tbody>
+        </table>
+      </section>
+
+      <section class="block faq">
+        <h2>{c.product.questions}</h2>
+        {
+          faqs.map((f) => (
+            <details>
+              <summary>{f.question}</summary>
+              <p>{f.answer}</p>
+            </details>
+          ))
+        }
+      </section>
+    </div>
+  </div>
+
+  <section class="wrap more">
+    <h2 class="display h2" style="margin-bottom: 30px">{c.product.more}</h2>
+    <div class="grid" style="padding-bottom: 0">
+      {
+        others.map((p) => (
+          <a class="card glass reveal" href={href(lang, `/honeys/${p.slug}`)}>
+            <div class="card__media">
+              <img src="/images/honey-jar.webp" alt={p.copy[lang].name} data-jar-shot={p.slug} data-jar-color={p.color} data-jar-label={p.label} loading="lazy" width="784" height="1217" />
+            </div>
+            <div class="card__body">
+              <span class="card__type" style={`--flavor:${p.label}`}>{HONEY_TYPES[p.type][lang]}</span>
+              <h3>{p.copy[lang].name}</h3>
+              <span class="card__price">{c.common.from} <strong>{formatPrice(lowestPrice(p))}</strong></span>
+            </div>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</Base>

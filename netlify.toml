@@ -1,0 +1,83 @@
+# Netlify configuration for the High Growth Honey showcase site (Astro, static output).
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Astro 7 needs Node 22.12 or newer.
+  NODE_VERSION = "22"
+  NPM_FLAGS = "--no-audit --no-fund"
+
+# ---------------------------------------------------------------------------
+# Redirects
+# ---------------------------------------------------------------------------
+
+# Root: send Hindi browsers to /hi/, everyone else to /en/.
+# force = true because dist/index.html exists and would otherwise win.
+[[redirects]]
+  from = "/"
+  to = "/hi/"
+  status = 302
+  force = true
+  conditions = { Language = ["hi"] }
+
+[[redirects]]
+  from = "/"
+  to = "/en/"
+  status = 302
+  force = true
+
+# Language-less paths (old links, typed URLs) go to the English page.
+[[redirects]]
+  from = "/honeys/*"
+  to = "/en/honeys/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/about"
+  to = "/en/about/"
+  status = 301
+
+[[redirects]]
+  from = "/contact"
+  to = "/en/contact/"
+  status = 301
+
+# Anything else that doesn't exist is served by dist/404.html automatically.
+
+# ---------------------------------------------------------------------------
+# Headers
+# ---------------------------------------------------------------------------
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    # 'wasm-unsafe-eval': the bee model's meshopt decoder is WebAssembly.
+    # blob:/data: in img/connect: three.js unpacks textures from the model via blob URLs,
+    # and the jar/bee snapshots are data URLs.
+    # 'unsafe-inline' scripts: one tiny inline script sets the `js` class before paint.
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob: data:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+
+# Hashed build assets (JS, CSS, fonts): cache forever.
+[[headers]]
+  for = "/_astro/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# The 3D model and product image keep fixed names, so cache for a month and
+# revalidate in the background. Rename the file if you replace it.
+[[headers]]
+  for = "/models/*"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000, stale-while-revalidate=86400"

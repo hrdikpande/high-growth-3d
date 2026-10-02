@@ -1,0 +1,55 @@
+---
+import Base from "../../../layouts/Base.astro";
+import { t } from "../../../data/content";
+import { href, staticLangPaths, type Locale } from "../../../data/i18n";
+import { formatPrice } from "../../../data/format";
+import { HONEY_TYPES, lowestPrice, PRODUCTS } from "../../../data/products";
+
+export function getStaticPaths() {
+  return staticLangPaths();
+}
+
+const lang = Astro.params.lang as Locale;
+const c = t(lang);
+const types = Object.keys(HONEY_TYPES).filter((k) => PRODUCTS.some((p) => p.type === k));
+const sceneData = { products: PRODUCTS.map((p) => ({ slug: p.slug, color: p.color, label: p.label })) };
+---
+
+<Base lang={lang} title={c.catalogue.title} scene="catalogue" sceneData={sceneData}>
+  <section class="wrap page-head">
+    <span class="glow" style="width: 40vw; height: 26vw; right: -10vw; top: 20%; background: #c9821c"></span>
+    <p class="eyebrow">{c.varieties.eyebrow}</p>
+    <h1 class="display h1">{c.catalogue.title}</h1>
+    <p class="lede">{c.catalogue.intro}</p>
+  </section>
+
+  <section class="wrap" data-catalogue data-count-pattern={c.catalogue.countPattern}>
+    <div class="filters" role="group" aria-label={c.catalogue.honeyType}>
+      <button class="chip" type="button" aria-pressed="true" data-filter="all">{c.catalogue.all}</button>
+      {types.map((k) => <button class="chip" type="button" aria-pressed="false" data-filter={k}>{HONEY_TYPES[k][lang]}</button>)}
+    </div>
+    <p class="count" aria-live="polite">{c.catalogue.countPattern.replace("{shown}", String(PRODUCTS.length)).replace("{total}", String(PRODUCTS.length))}</p>
+    <div class="grid">
+      {
+        PRODUCTS.map((p, i) => {
+          const pc = p.copy[lang];
+          return (
+            <a class="card glass reveal" href={href(lang, `/honeys/${p.slug}`)} data-type={p.type} style={`transition-delay:${(i % 3) * 0.08}s; --flavor:${p.label}`}>
+              <div class="card__media">
+                <img src="/images/honey-jar.webp" alt={pc.name} data-jar-shot={p.slug} loading={i < 3 ? "eager" : "lazy"} decoding="async" width="784" height="1217" />
+              </div>
+              <div class="card__body">
+                <span class="card__type" style={`--flavor:${p.label}`}>{HONEY_TYPES[p.type][lang]}</span>
+                <h2 class="card__title">{pc.name}</h2>
+                <p>{pc.shortDesc}</p>
+                <span class="card__price">
+                  {c.common.from} <strong>{formatPrice(lowestPrice(p))}</strong>
+                </span>
+              </div>
+            </a>
+          );
+        })
+      }
+    </div>
+  </section>
+</Base>
