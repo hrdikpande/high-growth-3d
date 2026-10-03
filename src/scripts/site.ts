@@ -57,12 +57,22 @@ if (header) {
 
   const btn = header.querySelector<HTMLButtonElement>(".menu-btn");
   const menu = header.querySelector<HTMLElement>(".mobile-nav");
-  btn?.addEventListener("click", () => {
-    const open = btn.getAttribute("aria-expanded") !== "true";
+  const setMenuOpen = (open: boolean) => {
+    if (!btn) return;
     btn.setAttribute("aria-expanded", String(open));
     btn.textContent = open ? btn.dataset.close! : btn.dataset.open!;
     menu?.classList.toggle("is-open", open);
     header.classList.toggle("is-solid", open || pastHero || !startsLight);
+  };
+  btn?.addEventListener("click", () => setMenuOpen(btn.getAttribute("aria-expanded") !== "true"));
+  menu?.addEventListener("click", (event) => {
+    if ((event.target as HTMLElement).closest("a")) setMenuOpen(false);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && btn?.getAttribute("aria-expanded") === "true") {
+      setMenuOpen(false);
+      btn.focus();
+    }
   });
 }
 

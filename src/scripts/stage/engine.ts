@@ -25,7 +25,7 @@ export function initEngine(canvas: HTMLCanvasElement) {
   const phone = window.matchMedia("(max-width: 900px), (pointer: coarse)").matches;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: !phone || devicePixelRatio < 2, alpha: true, powerPreference: "high-performance" });
   // Phones: cap resolution, the canvas covers the whole screen.
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, phone ? 1.5 : 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, phone ? 1.25 : 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
@@ -52,11 +52,13 @@ export function initEngine(canvas: HTMLCanvasElement) {
 
   const timer = new THREE.Timer();
   const loop = (now: number) => {
-    timer.update(now);
-    const dt = Math.min(timer.getDelta(), 0.05);
-    const t = timer.getElapsed();
-    engine.ticks.forEach((fn) => fn(dt, t));
-    renderer.render(engine.scene, engine.camera);
+    if (!document.hidden) {
+      timer.update(now);
+      const dt = Math.min(timer.getDelta(), 0.05);
+      const t = timer.getElapsed();
+      engine.ticks.forEach((fn) => fn(dt, t));
+      renderer.render(engine.scene, engine.camera);
+    }
     requestAnimationFrame(loop);
   };
   requestAnimationFrame(loop);
